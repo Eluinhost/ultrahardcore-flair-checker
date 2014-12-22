@@ -1,0 +1,14 @@
+{
+  "subreddit": "ultrahardcore",
+  "limit": 200,
+  "login": {
+    "username": "REDDIT USERNAME",
+    "password": "REDDIT PASSWORD"
+  },
+  "oauth": {
+    "type": "script",
+    "consumerKey": "PUT KEY HERE",
+    "consumerSecret": "PUT SECRET HERE",
+    "scope": ["read", "flair", "submit"]
+  }
+}
