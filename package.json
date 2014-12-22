@@ -1,0 +1,39 @@
+{
+  "name": "ultrahardcore-flair-checker",
+  "version": "0.0.0",
+  "description": "Checks and updates flairs for match posts on Reddit",
+  "main": "./src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/UltraSoftcore/ultrahardcore-flair-checker.git"
+  },
+  "keywords": [
+    "hubot",
+    "hubot-script",
+    "script",
+    "youtube"
+  ],
+  "author": "Eluinhost",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/UltraSoftcore/ultrahardcore-flair-checker/issues"
+  },
+  "homepage": "https://github.com/UltraSoftcore/ultrahardcore-flair-checker",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "chai": "*",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-mocha-test": "~0.7.0",
+    "grunt-release": "~0.6.0",
+    "load-grunt-tasks": "*",
+    "mocha": "*",
+    "nock": "^0.48.2",
+    "sinon": "*",
+    "sinon-chai": "*"
+  },
+  "dependencies": {
+    "q": "^1.0.1"
+  }
+}
