@@ -3,6 +3,12 @@ var Q = require('q');
 var config = require('./../config/config.json').formatChecker;
 var moment = require('moment');
 
+/**
+ * An invalid format checker can check posts for invalid title formats and leave a comment if the post is deemed invalid.
+ *
+ * @param {Snoocore} reddit
+ * @constructor
+ */
 function InvalidFormatChecker(reddit) {
     this.reddit = reddit;
 }
@@ -28,6 +34,12 @@ function shouldProcess(name) {
     return def.promise;
 }
 
+/**
+ * Processes a post of invalid title format and leaves a comment on it
+ *
+ * @param post
+ * @returns {Q.promise}
+ */
 function processPost(post) {
     var def = Q.defer();
     console.log('processing', post.data.name);
@@ -58,6 +70,14 @@ InvalidFormatChecker.prototype = {
             }
         });
     },
+    /**
+     * Checks each of the posts sequentially. Resolves when completed.
+     *
+     * @see #checkPost
+     *
+     * @param {array} posts
+     * @returns {Q.promise}
+     */
     checkPosts: function(posts) {
         var def = Q.defer();
 

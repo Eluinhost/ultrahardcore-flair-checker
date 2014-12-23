@@ -2,7 +2,6 @@ var Snoocore = require('snoocore');
 var config = require('../config/config.json');
 var InvalidFormatChecker = require('./InvalidFormatChecker');
 
-
 var reddit = new Snoocore({
     userAgent: 'UltraHardcore Flair Checker',
     throttle: 1000,
