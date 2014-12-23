@@ -72,6 +72,8 @@ InvalidFormatChecker.prototype = {
             },
             Q()
         ).then(def.resolve);
+
+        return def.promise;
     },
     /**
      * Check the post for invalid formats
