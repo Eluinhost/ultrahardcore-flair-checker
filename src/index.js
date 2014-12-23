@@ -12,9 +12,7 @@ var reddit = new Snoocore({
 
 var formatChecker = new InvalidFormatChecker(reddit);
 
-require('./db/DbInit')().then(function() {
-    return reddit.auth();
-}).then(function() {
+require('./db/DbInit')().then(formatChecker.removeOld).then(reddit.auth).then(function() {
     return reddit('/r/$subreddit/search').get({
         $subreddit: config.subreddit,
         limit: config.limit,

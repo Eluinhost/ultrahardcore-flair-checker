@@ -1,5 +1,7 @@
 var InvalidFormatCheck = require('./models/InvalidFormatCheck');
 var Q = require('q');
+var config = require('./../config/config.json').formatChecker;
+var moment = require('moment');
 
 function InvalidFormatChecker(reddit) {
     this.reddit = reddit;
@@ -35,7 +37,7 @@ function processPost(post) {
     // if incorrect add comment
 
     // update DB to say post checked
-    InvalidFormatCheck.build({ name: post.data.name })
+    InvalidFormatCheck.build({ name: post.data.name, checked: moment().valueOf() })
         .save()
         .then(def.resolve, def.reject);
 
@@ -43,6 +45,19 @@ function processPost(post) {
 }
 
 InvalidFormatChecker.prototype = {
+    /**
+     * Removes all checks older than the configured date
+     */
+    removeOld: function() {
+
+        return InvalidFormatCheck.destroy({
+            where: {
+                checked: {
+                    lt: moment().subtract(config.retention.value, config.retention.unit).valueOf()
+                }
+            }
+        });
+    },
     checkPosts: function(posts) {
         var def = Q.defer();
 

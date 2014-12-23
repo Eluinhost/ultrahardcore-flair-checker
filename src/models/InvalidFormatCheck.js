@@ -8,11 +8,14 @@ var InvalidFormatCheck = orm.define('InvalidFormatCheck',
             allowNull: false,
             unique: true,
             primaryKey: true
+        },
+        checked: {
+            type: Seq.INTEGER,
+            allowNull: false
         }
     },
     {
-        timestamps: true,
-        updatedAt: false
+        timestamps: false
     });
 
 
