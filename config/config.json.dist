@@ -10,5 +10,11 @@
     "consumerKey": "PUT KEY HERE",
     "consumerSecret": "PUT SECRET HERE",
     "scope": ["read", "flair", "submit"]
+  },
+  "database": {
+    "client": "sqlite3",
+    "connection": {
+      "filename": "./database.sqlite"
+    }
   }
 }

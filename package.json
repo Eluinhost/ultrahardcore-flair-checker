@@ -34,7 +34,10 @@
     "sinon-chai": "*"
   },
   "dependencies": {
+    "bookshelf": "^0.7.9",
+    "knex": "^0.7.3",
     "q": "^1.0.1",
-    "snoocore": "^2.1.0"
+    "snoocore": "^2.1.0",
+    "sqlite3": "^3.0.4"
   }
 }
