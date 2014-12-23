@@ -1,5 +1,5 @@
 var details = require('./DatabaseDetails');
 
-var knex = require('knex')(details);
+var Sequelize = require('sequelize');
 
-module.exports = require('bookshelf')(knex);
+module.exports = new Sequelize(details.database, details.username, details.password, details.options);

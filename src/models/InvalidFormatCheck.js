@@ -1,12 +1,19 @@
-var Model = require('./../db/Orm').Model;
+var orm = require('./../db/Orm');
+var Seq = require('sequelize');
 
-var InvalidFormatCheck = Model.extend(
+var InvalidFormatCheck = orm.define('InvalidFormatCheck',
     {
-        tableName: 'InvalidFormatCheck',
-        idAttribute: 'name',
-        name: String,
-        hasTimestamps: true
-    }
-);
+        name: {
+            type: Seq.STRING,
+            allowNull: false,
+            unique: true,
+            primaryKey: true
+        }
+    },
+    {
+        timestamps: true,
+        updatedAt: false
+    });
+
 
 module.exports = InvalidFormatCheck;

@@ -14,16 +14,14 @@ function InvalidFormatChecker(reddit) {
 function shouldProcess(name) {
     var def = Q.defer();
 
-    new InvalidFormatCheck({ name: name })
-        .fetch()
+    InvalidFormatCheck.find(name)
         .then(
         function success(model) {
-            def.resolve(typeof model === 'undefined');
+            def.resolve(model === null);
         },
         function error(err) {
             def.reject(err);
-        }
-    );
+        });
 
     return def.promise;
 }
@@ -37,7 +35,7 @@ function processPost(post) {
     // if incorrect add comment
 
     // update DB to say post checked
-    new InvalidFormatCheck({ name: post.data.name })
+    InvalidFormatCheck.build({ name: post.data.name })
         .save()
         .then(def.resolve, def.reject);
 
