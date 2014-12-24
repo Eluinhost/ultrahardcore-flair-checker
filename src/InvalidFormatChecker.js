@@ -14,6 +14,8 @@ function InvalidFormatChecker(reddit) {
     this.reddit = reddit;
 }
 
+var titleRegex = new RegExp(config.titleRegex, 'i');
+
 /**
  * Checks if we've already processed this post in the past
  *
@@ -45,11 +47,14 @@ function processPost(post) {
     logger.info('Starting processing for post ID %s', post.data.name);
     var def = Q.defer();
 
-    //TODO check if format is incorrect
+    if (titleRegex.test(post.data.title)) {
+        logger.info('Post ID %s title (%s) is correct. Skipping', post.data.name, post.data.title);
+    } else {
+        logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post', post.data.name, post.data.title);
+        // add a comment on to the post
+    }
 
-    // if incorrect add comment
-
-    // update DB to say post checked
+    // update DB to say post checked and avoid duplicate comments
     InvalidFormatCheck.build({ name: post.data.name, checked: moment().valueOf() })
         .save()
         .then(def.resolve, def.reject);

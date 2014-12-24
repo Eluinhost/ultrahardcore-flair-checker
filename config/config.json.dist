@@ -24,6 +24,7 @@
       "retention": {
         "unit": "months",
         "value": 6
-      }
+      },
+      "titleRegex": "^(\\w+ \\d+ \\d+:\\d+)\\s*(?:UTC|UCT)?\\s*\\[?(\\w*)\\]?[ -]+(.*)$"
     }
 }
