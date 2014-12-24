@@ -1,6 +1,7 @@
 {
   "subreddit": "ultrahardcore",
-  "limit": 200,
+  "filter": "flair:Upcoming_Match",
+  "limit": 100,
   "login": {
     "username": "REDDIT USERNAME",
     "password": "REDDIT PASSWORD"

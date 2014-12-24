@@ -24,7 +24,8 @@ require('./db/DbInit')().then(function() {
         $subreddit: config.subreddit,
         limit: config.limit,
         restrict_sr: true,
-        sort: 'new'
+        sort: 'new',
+        q: config.filter
     })
 }).then(function(results) {
     logger.info('Found %d posts to check', results.data.children.length);
