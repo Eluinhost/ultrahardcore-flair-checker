@@ -12,9 +12,18 @@
     "scope": ["read", "flair", "submit"]
   },
   "database": {
-    "client": "sqlite3",
-    "connection": {
-      "filename": "./database.sqlite"
+      "database": "FlairChecker",
+      "username": "",
+      "password": "",
+      "options": {
+        "dialect": "sqlite",
+        "storage": "./database.sqlite"
+      }
+    },
+    "formatChecker": {
+      "retention": {
+        "unit": "months",
+        "value": 6
+      }
     }
-  }
 }
