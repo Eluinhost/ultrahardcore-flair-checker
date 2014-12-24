@@ -1,4 +1,3 @@
-var orm = require('./Orm');
 var Q = require('q');
 
 var models = [require('./../models/InvalidFormatCheck')];

@@ -2,6 +2,7 @@ var InvalidFormatCheck = require('./models/InvalidFormatCheck');
 var Q = require('q');
 var config = require('./../config/config.json').formatChecker;
 var moment = require('moment');
+var logger = require('./Logger');
 
 /**
  * An invalid format checker can check posts for invalid title formats and leave a comment if the post is deemed invalid.
@@ -41,8 +42,8 @@ function shouldProcess(name) {
  * @returns {Q.promise}
  */
 function processPost(post) {
+    logger.info('Starting processing for post ID %s', post.data.name);
     var def = Q.defer();
-    console.log('processing', post.data.name);
 
     //TODO check if format is incorrect
 
@@ -61,7 +62,7 @@ InvalidFormatChecker.prototype = {
      * Removes all checks older than the configured date
      */
     removeOld: function() {
-
+        logger.info('Removing out of date checks');
         return InvalidFormatCheck.destroy({
             where: {
                 checked: {
@@ -104,21 +105,20 @@ InvalidFormatChecker.prototype = {
      */
     checkPost: function(post) {
         var def = Q.defer();
-        console.log('checking', post.data.name);
+        logger.debug('Checking post with ID %s', post.data.name);
         var processed = false;
 
         shouldProcess(post.data.name).then(
             function success(toProcess){
                 if (toProcess) {
                     processed = true;
-                    console.log('processing', post.data.name);
                     return processPost(post);
                 } else {
-                    console.log('skipping already processed', post.data.name);
+                    logger.info('Skipped post ID %s; already processed', post.data.name);
                 }
             },
             function error(err) {
-                console.log('error processing post', err);
+                logger.error('Error checking checked status of post ID %s, Error: %s', post.data.name, err);
                 def.reject(err);
             }
         ).then(
@@ -126,7 +126,7 @@ InvalidFormatChecker.prototype = {
                 def.resolve(processed);
             },
             function error(err) {
-                console.log('error processing post', err);
+                logger.error('Error processing post ID %s, Error: %s', post.data.name, err);
                 def.reject(err);
             }
         );
