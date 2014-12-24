@@ -37,32 +37,36 @@ function shouldProcess(name) {
     return def.promise;
 }
 
-/**
- * Processes a post of invalid title format and leaves a comment on it
- *
- * @param post
- * @returns {Q.promise}
- */
-function processPost(post) {
-    logger.info('Starting processing for post ID %s', post.data.name);
-    var def = Q.defer();
-
-    if (titleRegex.test(post.data.title)) {
-        logger.info('Post ID %s title (%s) is correct. Skipping', post.data.name, post.data.title);
-    } else {
-        logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post', post.data.name, post.data.title);
-        // add a comment on to the post
-    }
-
-    // update DB to say post checked and avoid duplicate comments
-    InvalidFormatCheck.build({ name: post.data.name, checked: moment().valueOf() })
-        .save()
-        .then(def.resolve, def.reject);
-
-    return def.promise;
-}
-
 InvalidFormatChecker.prototype = {
+    /**
+     * Processes a post of invalid title format and leaves a comment on it
+     *
+     * @param post
+     * @returns {Q.promise}
+     */
+    processPost: function(post) {
+        logger.info('Starting processing for post ID %s', post.data.name);
+        var def = Q.defer();
+
+        if (titleRegex.test(post.data.title)) {
+            logger.info('Post ID %s title (%s) is correct. Skipping', post.data.name, post.data.title);
+        } else {
+            logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post', post.data.name, post.data.title);
+            // add a comment on to the post
+
+            this.reddit('/api/comment').post({
+                text: config.message,
+                thing_id: post.data.name
+            });
+        }
+
+        // update DB to say post checked and avoid duplicate comments
+        InvalidFormatCheck.build({ name: post.data.name, checked: moment().valueOf() })
+            .save()
+            .then(def.resolve, def.reject);
+
+        return def.promise;
+    },
     /**
      * Removes all checks older than the configured date
      */
@@ -86,10 +90,11 @@ InvalidFormatChecker.prototype = {
      */
     checkPosts: function(posts) {
         var def = Q.defer();
+        var self = this;
 
         posts.map(
             function(element) {
-                return this.checkPost.bind(undefined, element);
+                return this.checkPost.bind(self, element);
             },
             this
         ).reduce(
@@ -112,12 +117,13 @@ InvalidFormatChecker.prototype = {
         var def = Q.defer();
         logger.debug('Checking post with ID %s', post.data.name);
         var processed = false;
+        var self = this;
 
         shouldProcess(post.data.name).then(
             function success(toProcess){
                 if (toProcess) {
                     processed = true;
-                    return processPost(post);
+                    return self.processPost(post);
                 } else {
                     logger.info('Skipped post ID %s; already processed', post.data.name);
                 }

@@ -26,6 +26,7 @@
         "unit": "months",
         "value": 6
       },
-      "titleRegex": "^(\\w+ \\d+ \\d+:\\d+)\\s*(?:UTC|UCT)?\\s*\\[?(\\w*)\\]?[ -]+(.*)$"
+      "titleRegex": "^(\\w+ \\d+ \\d+:\\d+)\\s*(?:UTC|UCT)?\\s*\\[?(\\w*)\\]?[ -]+(.*)$",
+      "message": "The title of this post does not conform to the subreddit rules for match post titles and may have problems showing up on match calendars. Please consider deleting the post and resubmitting with a valid title.\n\n---\n\n^This ^was ^posted ^by ^a ^bot. ^| ^Any ^problems? ^Contact [^ghowden](/u/ghowden) ^| [^Match ^Calendar](http://c.uhc.gg)"
     }
 }
