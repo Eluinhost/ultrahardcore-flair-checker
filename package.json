@@ -34,6 +34,13 @@
     "sinon-chai": "*"
   },
   "dependencies": {
-    "q": "^1.0.1"
+    "bookshelf": "^0.7.9",
+    "knex": "^0.7.3",
+    "moment": "^2.8.4",
+    "q": "^1.0.1",
+    "sequelize": "^2.0.0-rc4",
+    "snoocore": "^2.1.0",
+    "sqlite3": "^3.0.4",
+    "winston": "^0.8.3"
   }
 }

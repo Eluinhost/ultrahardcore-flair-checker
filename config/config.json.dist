@@ -1,0 +1,32 @@
+{
+  "subreddit": "ultrahardcore",
+  "filter": "flair:Upcoming_Match",
+  "limit": 100,
+  "login": {
+    "username": "REDDIT USERNAME",
+    "password": "REDDIT PASSWORD"
+  },
+  "oauth": {
+    "type": "script",
+    "consumerKey": "PUT KEY HERE",
+    "consumerSecret": "PUT SECRET HERE",
+    "scope": ["read", "flair", "submit"]
+  },
+  "database": {
+      "database": "FlairChecker",
+      "username": "",
+      "password": "",
+      "options": {
+        "dialect": "sqlite",
+        "storage": "./database.sqlite"
+      }
+    },
+    "formatChecker": {
+      "retention": {
+        "unit": "months",
+        "value": 6
+      },
+      "titleRegex": "^(\\w+ \\d+ \\d+:\\d+)\\s*(?:UTC|UCT)?\\s*\\[?(\\w*)\\]?[ -]+(.*)$",
+      "message": "The title of this post does not conform to the subreddit rules for match post titles and may have problems showing up on match calendars. Please consider deleting the post and resubmitting with a valid title.\n\n---\n\n^This ^was ^posted ^by ^a ^bot. ^| ^Any ^problems? ^Contact [^ghowden](/u/ghowden) ^| [^Match ^Calendar](http://c.uhc.gg)"
+    }
+}
