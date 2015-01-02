@@ -3,6 +3,9 @@ var config = require('../config/config.json');
 var TitleFormatPass = require('./passes/TitleFormatPass');
 var logger = require('./Logger');
 var Q = require('q');
+var TitleCheck = require('./models/TitleCheck');
+var moment = require('moment');
+
 
 var reddit = new Snoocore({
     userAgent: 'UltraHardcore Flair Checker',
@@ -11,7 +14,6 @@ var reddit = new Snoocore({
     login: config.login.account
 });
 
-var formatPass = new TitleFormatPass(reddit);
 
 initDatabase()
     .then(authenticate)
@@ -31,6 +33,7 @@ function titlePass() {
         logger.info('Found %d posts to check', results.data.children.length);
 
         logger.info('Starting title format check');
+        var formatPass = new TitleFormatPass(reddit);
         return formatPass.checkPosts(results.data.children);
     });
 }
@@ -55,5 +58,15 @@ function initDatabase() {
     logger.info('Starting up database');
 
     return require('./db/DbInit')()
-        .then(formatPass.removeOld)
+        .then(function() {
+            logger.info('Removing out of date title checks from the database');
+
+            return TitleCheck.destroy({
+                where: {
+                    checked: {
+                        lt: moment().subtract(config.titlePass.retention.value, config.titlePass.retention.unit).valueOf()
+                    }
+                }
+            });
+        })
 }

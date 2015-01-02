@@ -68,19 +68,6 @@ TitleFormatPass.prototype = {
         return def.promise;
     },
     /**
-     * Removes all checks older than the configured date
-     */
-    removeOld: function() {
-        logger.info('Removing out of date checks');
-        return TitleCheck.destroy({
-            where: {
-                checked: {
-                    lt: moment().subtract(config.retention.value, config.retention.unit).valueOf()
-                }
-            }
-        });
-    },
-    /**
      * Checks each of the posts sequentially. Resolves when completed.
      *
      * @see #checkPost
