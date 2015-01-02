@@ -24,13 +24,20 @@ TitleFormatPass.prototype = {
         if (titleRegex.test(post.data.title)) {
             logger.info('Post ID %s title (%s) is correct. Skipping', post.data.name, post.data.title);
         } else {
-            logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post', post.data.name, post.data.title);
-            // add a comment on to the post
+            logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post and removing flair', post.data.name, post.data.title);
 
+            // add a comment on to the post
             this.reddit('/api/comment').post({
                 text: config.format.message,
                 thing_id: post.data.name
             });
+
+            // clear the flair
+            this.reddit('/r/$subreddit/api/flair').post({
+                $subreddit: config.query.$subreddit,
+                api_type: 'json',
+                link: post.data.name
+            })
         }
     },
     /**
