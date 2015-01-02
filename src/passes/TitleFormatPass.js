@@ -1,8 +1,5 @@
-var TitleCheck = require('./models/TitleCheck');
-var Q = require('q');
-var config = require('./../config/config.json').titlePass;
-var moment = require('moment');
-var logger = require('./Logger');
+var config = require('./../../config/config.json').titlePass;
+var logger = require('./../Logger');
 
 /**
  * An invalid format checker can check posts for invalid title formats and leave a comment if the post is deemed invalid.
@@ -16,38 +13,14 @@ function TitleFormatPass(reddit) {
 
 var titleRegex = new RegExp(config.format.regex, 'i');
 
-/**
- * Checks if we've already processed this post in the past
- *
- * @param name
- * @returns {Q.promise} resolves to true if not processed, false if already process
- */
-function shouldProcess(name) {
-    var def = Q.defer();
-
-    TitleCheck.find(name)
-        .then(
-        function success(model) {
-            def.resolve(model === null);
-        },
-        function error(err) {
-            def.reject(err);
-        });
-
-    return def.promise;
-}
 
 TitleFormatPass.prototype = {
     /**
      * Processes a post of invalid title format and leaves a comment on it
      *
      * @param post
-     * @returns {Q.promise}
      */
     processPost: function(post) {
-        logger.info('Starting processing for post ID %s', post.data.name);
-        var def = Q.defer();
-
         if (titleRegex.test(post.data.title)) {
             logger.info('Post ID %s title (%s) is correct. Skipping', post.data.name, post.data.title);
         } else {
@@ -59,77 +32,16 @@ TitleFormatPass.prototype = {
                 thing_id: post.data.name
             });
         }
-
-        // update DB to say post checked and avoid duplicate comments
-        TitleCheck.build({ name: post.data.name, checked: moment().valueOf() })
-            .save()
-            .then(def.resolve, def.reject);
-
-        return def.promise;
     },
     /**
      * Checks each of the posts sequentially. Resolves when completed.
      *
-     * @see #checkPost
+     * @see #processPost
      *
      * @param {array} posts
-     * @returns {Q.promise}
      */
-    checkPosts: function(posts) {
-        var def = Q.defer();
-        var self = this;
-
-        posts.map(
-            function(element) {
-                return this.checkPost.bind(self, element);
-            },
-            this
-        ).reduce(
-            function(soFar, func) {
-                return soFar.finally(func);
-            },
-            Q()
-        ).then(def.resolve);
-
-        return def.promise;
-    },
-    /**
-     * Check the post for invalid formats
-     *
-     * @param post
-     * @returns {Q.promise} resolves to true if was processed, false if skipped because it was already processed. Will
-     * reject if any problems during database/check
-     */
-    checkPost: function(post) {
-        var def = Q.defer();
-        logger.debug('Checking post with ID %s', post.data.name);
-        var processed = false;
-        var self = this;
-
-        shouldProcess(post.data.name).then(
-            function success(toProcess){
-                if (toProcess) {
-                    processed = true;
-                    return self.processPost(post);
-                } else {
-                    logger.info('Skipped post ID %s; already processed', post.data.name);
-                }
-            },
-            function error(err) {
-                logger.error('Error checking checked status of post ID %s, Error: %s', post.data.name, err);
-                def.reject(err);
-            }
-        ).then(
-            function success() {
-                def.resolve(processed);
-            },
-            function error(err) {
-                logger.error('Error processing post ID %s, Error: %s', post.data.name, err);
-                def.reject(err);
-            }
-        );
-
-        return def.promise;
+    processPosts: function(posts) {
+        posts.forEach(this.processPost, this);
     }
 };
 

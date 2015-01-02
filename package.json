@@ -34,6 +34,7 @@
     "sinon-chai": "*"
   },
   "dependencies": {
+    "async": "^0.9.0",
     "bookshelf": "^0.7.9",
     "knex": "^0.7.3",
     "moment": "^2.8.4",

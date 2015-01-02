@@ -5,6 +5,7 @@ var logger = require('./Logger');
 var Q = require('q');
 var TitleCheck = require('./models/TitleCheck');
 var moment = require('moment');
+var async = require('async');
 
 
 var reddit = new Snoocore({
@@ -19,7 +20,7 @@ initDatabase()
     .then(authenticate)
     .then(titlePass)
     .catch(function(err) {
-        logger.error('Uncaught error during scripts: %s', err);
+        logger.error('Uncaught error during scripts: ' + err);
     });
 
 /**
@@ -29,13 +30,86 @@ initDatabase()
  */
 function titlePass() {
     logger.info('Starting title based pass');
-    return reddit('/r/$subreddit/search').get(config.titlePass.query).then(function(results) {
-        logger.info('Found %d posts to check', results.data.children.length);
 
-        logger.info('Starting title format check');
-        var formatPass = new TitleFormatPass(reddit);
-        return formatPass.checkPosts(results.data.children);
-    });
+    return reddit('/r/$subreddit/search').get(config.titlePass.query)
+        .then(filterAlreadyProcessed)
+        .then(function(posts) {
+            logger.info('Starting title format check for %s posts', posts.length);
+
+            var formatPass = new TitleFormatPass(reddit);
+            formatPass.processPosts(posts);
+
+            return posts;
+        })
+        .then(function(posts) {
+            saveNewChecks(posts);
+        });
+}
+
+function saveNewChecks(posts) {
+    // converts posts array to array of function that need to be called in series and then executes them
+
+    return posts.map(function(post) {
+        return saveNewCheck.bind(undefined, post.data.name)
+    }).reduce(Q.when, Q());
+}
+
+function saveNewCheck(name) {
+    // update DB to say post checked and avoid duplicate comments
+    return TitleCheck.build({ name: name, checked: moment().valueOf() }).save();
+}
+
+/**
+ * Filters out posts whose titles have already been processed in previous checks
+ *
+ * @param results
+ * @returns {Q.promise}
+ */
+function filterAlreadyProcessed(results) {
+    logger.info('Found %d posts to check', results.data.children.length);
+
+    var def = Q.defer();
+
+    // filter out already done posts
+    async.filter(
+        results.data.children,
+        function(item, callback) {
+            alreadyProcessedTitle(item.data.name).then(
+                function success(processed) {
+                    callback(!processed);
+                },
+                function error(err) {
+                    // skip post on errors
+                    logger.error('Error checking status from database for post %s: %s', item.data.name, err);
+                    callback(false);
+                }
+            )
+        },
+        def.resolve
+    );
+
+    return def.promise;
+}
+
+/**
+ * Checks if we've already processed this post in the past
+ *
+ * @param name
+ * @returns {Q.promise} resolves to true if not processed, false if already process
+ */
+function alreadyProcessedTitle(name) {
+    var def = Q.defer();
+
+    TitleCheck.find(name).then(
+        function success(model) {
+            def.resolve(model !== null);
+        },
+        function error(err) {
+            def.reject(err);
+        }
+    );
+
+    return def.promise;
 }
 
 /**
