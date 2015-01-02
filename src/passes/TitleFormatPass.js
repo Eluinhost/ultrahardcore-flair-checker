@@ -10,7 +10,7 @@ var logger = require('./Logger');
  * @param {Snoocore} reddit
  * @constructor
  */
-function InvalidFormatChecker(reddit) {
+function TitleFormatPass(reddit) {
     this.reddit = reddit;
 }
 
@@ -37,7 +37,7 @@ function shouldProcess(name) {
     return def.promise;
 }
 
-InvalidFormatChecker.prototype = {
+TitleFormatPass.prototype = {
     /**
      * Processes a post of invalid title format and leaves a comment on it
      *
@@ -146,4 +146,4 @@ InvalidFormatChecker.prototype = {
     }
 };
 
-module.exports = InvalidFormatChecker;
+module.exports = TitleFormatPass;
