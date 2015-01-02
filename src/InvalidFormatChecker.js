@@ -1,4 +1,4 @@
-var InvalidFormatCheck = require('./models/InvalidFormatCheck');
+var TitleCheck = require('./models/TitleCheck');
 var Q = require('q');
 var config = require('./../config/config.json').formatChecker;
 var moment = require('moment');
@@ -25,7 +25,7 @@ var titleRegex = new RegExp(config.titleRegex, 'i');
 function shouldProcess(name) {
     var def = Q.defer();
 
-    InvalidFormatCheck.find(name)
+    TitleCheck.find(name)
         .then(
         function success(model) {
             def.resolve(model === null);
@@ -61,7 +61,7 @@ InvalidFormatChecker.prototype = {
         }
 
         // update DB to say post checked and avoid duplicate comments
-        InvalidFormatCheck.build({ name: post.data.name, checked: moment().valueOf() })
+        TitleCheck.build({ name: post.data.name, checked: moment().valueOf() })
             .save()
             .then(def.resolve, def.reject);
 
@@ -72,7 +72,7 @@ InvalidFormatChecker.prototype = {
      */
     removeOld: function() {
         logger.info('Removing out of date checks');
-        return InvalidFormatCheck.destroy({
+        return TitleCheck.destroy({
             where: {
                 checked: {
                     lt: moment().subtract(config.retention.value, config.retention.unit).valueOf()
