@@ -1,6 +1,6 @@
 var TitleCheck = require('./models/TitleCheck');
 var Q = require('q');
-var config = require('./../config/config.json').formatChecker;
+var config = require('./../config/config.json').titlePass;
 var moment = require('moment');
 var logger = require('./Logger');
 
@@ -14,7 +14,7 @@ function TitleFormatPass(reddit) {
     this.reddit = reddit;
 }
 
-var titleRegex = new RegExp(config.titleRegex, 'i');
+var titleRegex = new RegExp(config.format.regex, 'i');
 
 /**
  * Checks if we've already processed this post in the past
@@ -55,7 +55,7 @@ TitleFormatPass.prototype = {
             // add a comment on to the post
 
             this.reddit('/api/comment').post({
-                text: config.message,
+                text: config.format.message,
                 thing_id: post.data.name
             });
         }

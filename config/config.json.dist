@@ -1,32 +1,50 @@
 {
-  "subreddit": "ultrahardcore",
-  "filter": "flair:Upcoming_Match",
-  "limit": 100,
   "login": {
-    "username": "REDDIT USERNAME",
-    "password": "REDDIT PASSWORD"
-  },
-  "oauth": {
-    "type": "script",
-    "consumerKey": "PUT KEY HERE",
-    "consumerSecret": "PUT SECRET HERE",
-    "scope": ["read", "flair", "submit"]
+    "account": {
+      "username": "REDDIT USERNAME",
+      "password": "REDDIT PASSWORD"
+    },
+    "oauth": {
+      "type": "script",
+      "consumerKey": "PUT REDDIT APP KEY HERE",
+      "consumerSecret": "PUT REDDIT APP SECRET HERE",
+      "scope": ["read", "flair", "submit"]
+    }
   },
   "database": {
-      "database": "FlairChecker",
-      "username": "",
-      "password": "",
-      "options": {
-        "dialect": "sqlite",
-        "storage": "./database.sqlite"
-      }
+    "database": "FlairChecker",
+    "username": "",
+    "password": "",
+    "options": {
+      "dialect": "sqlite",
+      "storage": "./database.sqlite"
+    }
+  },
+  "titlePass": {
+    "query": {
+      "$subreddit": "ultrahardcore",
+      "q": "",
+      "sort": "new",
+      "limit": 100,
+      "restrict_sr": true
     },
-    "formatChecker": {
-      "retention": {
-        "unit": "months",
-        "value": 6
-      },
-      "titleRegex": "^(\\w+ \\d+ \\d+:\\d+)\\s*(?:UTC|UCT)?\\s*\\[?(\\w*)\\]?[ -]+(.*)$",
+    "retention": {
+      "unit": "months",
+      "value": 6
+    },
+    "format": {
+      "regex": "^(\\w+ \\d+ \\d+:\\d+)\\s*(?:UTC|UCT)?\\s*\\[?(\\w*)\\]?[ -]+(.*)$",
       "message": "The title of this post does not conform to the subreddit rules for match post titles and may have problems showing up on match calendars. Please consider deleting the post and resubmitting with a valid title.\n\n---\n\n^This ^was ^posted ^by ^a ^bot. ^| ^Any ^problems? ^Contact [^ghowden](/u/ghowden) ^| [^Match ^Calendar](http://c.uhc.gg)"
     }
+  },
+  "flairRemoval": {
+    "query": {
+      "$subreddit": "ultrahardcore",
+      "q": "flair:Upcoming_Match",
+      "sort": "new",
+      "limit": 100,
+      "restrict_sr": true
+    },
+    "regex": "^(\\w+ \\d+ \\d+:\\d+)\\s*(?:UTC|UCT)?\\s*\\[?(\\w*)\\]?[ -]+(.*)$"
+  }
 }

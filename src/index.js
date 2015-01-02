@@ -6,8 +6,8 @@ var logger = require('./Logger');
 var reddit = new Snoocore({
     userAgent: 'UltraHardcore Flair Checker',
     throttle: 1000,
-    oauth: config.oauth,
-    login: config.login
+    oauth: config.login.oauth,
+    login: config.login.account
 });
 
 var formatPass = new TitleFormatPass(reddit);
@@ -20,13 +20,7 @@ require('./db/DbInit')().then(function() {
     return reddit.auth()
 }).then(function() {
     logger.info('Fetching reddit posts');
-    return reddit('/r/$subreddit/search').get({
-        $subreddit: config.subreddit,
-        limit: config.limit,
-        restrict_sr: true,
-        sort: 'new',
-        q: config.filter
-    })
+    return reddit('/r/$subreddit/search').get(config.titlePass.query);
 }).then(function(results) {
     logger.info('Found %d posts to check', results.data.children.length);
     logger.info('Starting title format check');
