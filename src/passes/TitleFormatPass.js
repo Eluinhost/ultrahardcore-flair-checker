@@ -1,4 +1,4 @@
-var config = require('./../../config/config.json').titlePass;
+var config = require('./../../config/config.json');
 var logger = require('./../Logger');
 
 /**
@@ -11,7 +11,7 @@ function TitleFormatPass(reddit) {
     this.reddit = reddit;
 }
 
-var titleRegex = new RegExp(config.format.regex, 'i');
+var titleRegex = new RegExp(config.titleRegex, 'i');
 
 
 TitleFormatPass.prototype = {
@@ -24,20 +24,36 @@ TitleFormatPass.prototype = {
         if (titleRegex.test(post.data.title)) {
             logger.info('Post ID %s title (%s) is correct. Skipping', post.data.name, post.data.title);
         } else {
-            logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post and removing flair', post.data.name, post.data.title);
+            logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post and adding invalid match flair', post.data.name, post.data.title);
 
             // add a comment on to the post
             this.reddit('/api/comment').post({
-                text: config.format.message,
+                text: config.titlePass.message,
                 thing_id: post.data.name
-            });
+            }).then(
+                function success() {
+                    logger.info('Added comment to post ID %s', post.data.name);
+                },
+                function error(err) {
+                    logger.error('Failed to add comment to post ID %s: %s', post.data.name, err);
+                }
+            );
 
-            // clear the flair
+            // add invalid match flair
             this.reddit('/r/$subreddit/api/flair').post({
-                $subreddit: config.query.$subreddit,
+                $subreddit: config.subreddit,
                 api_type: 'json',
-                link: post.data.name
-            })
+                css_class: config.flairs.invalid.class,
+                link: post.data.name,
+                text: config.flairs.invalid.text
+            }).then(
+                function success(data) {
+                    logger.info('Added flair for post ID %s: %s', post.data.name, data);
+                },
+                function error(err) {
+                    logger.error('Failed to add invalid match flair to post ID %s: %s', post.data.name, err);
+                }
+            );
         }
     },
     /**

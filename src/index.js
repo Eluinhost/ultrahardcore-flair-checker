@@ -15,6 +15,12 @@ var reddit = new Snoocore({
     login: config.login.account
 });
 
+// build a search string to exclude flairs from the excluded list
+var excludedFlairs = config.flairs.excluded.reduce(function(prev, current) {
+    return prev + '-flair:' + current + ' ';
+}, '');
+
+logger.debug('Excluded flairs search string: %s', excludedFlairs);
 
 initDatabase()
     .then(authenticate)
@@ -31,7 +37,14 @@ initDatabase()
 function titlePass() {
     logger.info('Starting title based pass');
 
-    return reddit('/r/$subreddit/search').get(config.titlePass.query)
+    return reddit('/r/$subreddit/search')
+        .get({
+            $subreddit: config.subreddit,
+            q: excludedFlairs,
+            sort: 'new',
+            limit: 100,
+            restrict_sr: true
+        })
         .then(filterAlreadyProcessed)
         .then(function(posts) {
             logger.info('Starting title format check for %s posts', posts.length);
