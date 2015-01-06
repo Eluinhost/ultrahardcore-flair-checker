@@ -1,14 +1,10 @@
-var config = require('./../../config/config.json');
 var logger = require('./../Logger');
+var async = require('async');
+var config = require('./../../config/config.json');
+var Q = require('q');
 
-/**
- * An invalid format checker can check posts for invalid title formats and leave a comment if the post is deemed invalid.
- *
- * @param {Snoocore} reddit
- * @constructor
- */
-function TitleFormatPass(reddit) {
-    this.reddit = reddit;
+function TitleFormatPass() {
+    this.TitleCheck = require('./../models/TitleCheck');
 }
 
 var titleRegex = new RegExp(config.titleRegex, 'i');
@@ -16,55 +12,138 @@ var titleRegex = new RegExp(config.titleRegex, 'i');
 
 TitleFormatPass.prototype = {
     /**
-     * Processes a post of invalid title format and leaves a comment on it
+     * Filters out posts whose titles have already been processed in previous checks
      *
-     * @param post
+     * @param posts
+     * @returns {Q.promise} that resolves to the filtered array
+     * @private
      */
-    processPost: function(post) {
-        if (titleRegex.test(post.data.title)) {
-            logger.info('Post ID %s title (%s) is correct. Skipping', post.data.name, post.data.title);
-        } else {
-            logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post and adding invalid match flair', post.data.name, post.data.title);
+    _removeProcessedPosts: function(posts) {
+        logger.info('Found %d posts to check', posts.length);
 
-            // add a comment on to the post
-            this.reddit('/api/comment').post({
-                text: config.titlePass.message,
-                thing_id: post.data.name
-            }).then(
-                function success() {
-                    logger.info('Added comment to post ID %s', post.data.name);
-                },
-                function error(err) {
-                    logger.error('Failed to add comment to post ID %s: %s', post.data.name, err);
-                }
-            );
+        var def = Q.defer();
 
-            // add invalid match flair
-            this.reddit('/r/$subreddit/api/flair').post({
-                $subreddit: config.subreddit,
-                api_type: 'json',
-                css_class: config.flairs.invalid.class,
-                link: post.data.name,
-                text: config.flairs.invalid.text
-            }).then(
-                function success(data) {
-                    logger.info('Added flair for post ID %s: %s', post.data.name, data);
-                },
-                function error(err) {
-                    logger.error('Failed to add invalid match flair to post ID %s: %s', post.data.name, err);
-                }
-            );
-        }
+        var self = this;
+        // filter out already done posts
+        async.filter(
+            posts,
+            function(item, callback) {
+                self._checkProcessed(item.data.name).then(
+                    function success(processed) {
+                        callback(!processed);
+                    },
+                    function error(err) {
+                        // skip post on errors
+                        logger.error('Error checking status from database for post %s: %s', item.data.name, err);
+                        callback(false);
+                    }
+                )
+            },
+            def.resolve
+        );
+
+        return def.promise;
     },
     /**
-     * Checks each of the posts sequentially. Resolves when completed.
+     * Checks if we've already processed this post in the past
      *
-     * @see #processPost
+     * @param name
+     * @returns {Q.promise} resolves to true if processed, false if not
+     * @private
+     */
+    _checkProcessed: function(name) {
+        var def = Q.defer();
+
+        this.TitleCheck.find(name).then(
+            function success(model) {
+                def.resolve(model !== null);
+            },
+            function error(err) {
+                def.reject(err);
+            }
+        );
+
+        return def.promise;
+    },
+    /**
+     * Processes a post, does not check if already processed before
      *
-     * @param {array} posts
+     * @param post
+     * @returns {Q.promise} a promise that resolves to when completed
+     * @private
+     */
+    _processPost: function(post) {
+        if (titleRegex.test(post.data.title)) {
+            logger.info('Post ID %s title (%s) is correct. Skipping', post.data.name, post.data.title);
+            return Q();
+        }
+
+        logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post and adding invalid match flair', post.data.name, post.data.title);
+
+        // add a comment on to the post
+        var commentPromise = this.reddit('/api/comment').post({
+            text: config.titlePass.message,
+            thing_id: post.data.name
+        }).then(
+            function success() {
+                logger.info('Added comment to post ID %s', post.data.name);
+            },
+            function error(err) {
+                logger.error('Failed to add comment to post ID %s: %s', post.data.name, err);
+            }
+        );
+
+        // add invalid match flair
+        var flairPromise = this.reddit('/r/$subreddit/api/flair').post({
+            $subreddit: config.subreddit,
+            api_type: 'json',
+            css_class: config.flairs.invalid.class,
+            link: post.data.name,
+            text: config.flairs.invalid.text
+        }).then(
+            function success(data) {
+                logger.info('Added flair for post ID %s: %s', post.data.name, data);
+            },
+            function error(err) {
+                logger.error('Failed to add invalid match flair to post ID %s: %s', post.data.name, err);
+            }
+        );
+
+        // promise that resolves after flair/comment is done
+        return Q.allSettled(commentPromise, flairPromise);
+    },
+    /**
+     * Processes all of the given posts, skips already processed posts
+     *
+     * @param posts
+     * @returns {Q.promise} a promise that resolves when completed
      */
     processPosts: function(posts) {
-        posts.forEach(this.processPost, this);
+        var def = Q.defer();
+
+        var self = this;
+        this._removeProcessedPosts(posts).then(function(results) {
+
+            async.each(
+                results,
+                function(result, callback) {
+                    self._processPost(result).finally(function() {
+                        callback()
+                    });
+                },
+                function(err) {
+                    if (err) {
+                        def.reject(err);
+                    } else {
+                        def.resolve();
+                    }
+                }
+            );
+
+            results.forEach(self.processPost, self);
+        });
+
+        return def.promise;
     }
 };
 
