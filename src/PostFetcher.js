@@ -33,7 +33,7 @@ function deduplicate(posts) {
 }
 
 PostFetcher.prototype = {
-    fetch: function(subreddit, query, count) {
+    _fetch: function(subreddit, query, count) {
         var def = Q.defer();
 
         var next = this.reddit('/r/$subreddit/search').listing({
@@ -96,7 +96,7 @@ PostFetcher.prototype = {
             return prev + '-flair:' + current + ' ';
         }, '');
 
-        return this.fetch(this.subreddit, query, count);
+        return this._fetch(this.subreddit, query, count);
     },
     /**
      * Fetches all matches with upcoming match flair
@@ -104,7 +104,7 @@ PostFetcher.prototype = {
     fetchUpcoming: function(count) {
         var query = 'flair:' + this.flairs.upcoming;
 
-        return this.fetch(this.subreddit, query, count);
+        return this._fetch(this.subreddit, query, count);
     }
 };
 

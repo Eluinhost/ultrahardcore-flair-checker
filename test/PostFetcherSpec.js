@@ -52,7 +52,7 @@ describe('PostFetcher', function () {
     it('fetches correct amount for less than 100 limit', function(done) {
 
         // fetch 70 posts
-        fetcher.fetch('sub', 'query', 70).then(
+        fetcher._fetch('sub', 'query', 70).then(
             function(data) {
                 try {
                     expect(reddit).to.have.been.calledWithExactly('/r/$subreddit/search');
@@ -82,7 +82,7 @@ describe('PostFetcher', function () {
     it('fetches correct amount for greater than 100 limit', function(done) {
 
         // start a query for 110 posts
-        fetcher.fetch('sub', 'query', 110).then(
+        fetcher._fetch('sub', 'query', 110).then(
             function(data) {
                 try {
                     expect(reddit).to.have.been.calledWithExactly('/r/$subreddit/search');
@@ -113,7 +113,7 @@ describe('PostFetcher', function () {
     it('returns as much as it can', function(done) {
 
         // start a query for 150 posts
-        fetcher.fetch('sub', 'query', 150).then(
+        fetcher._fetch('sub', 'query', 150).then(
             function(data) {
                 try {
                     expect(reddit).to.have.been.calledWithExactly('/r/$subreddit/search');
@@ -146,7 +146,7 @@ describe('PostFetcher', function () {
         fullSlice.next.onSecondCall().returns(shortPromise.promise);
 
         // start a query for 250 posts (fetches 100->100->25 for 225 and 115 after deduplication)
-        fetcher.fetch('sub', 'query', 250).then(
+        fetcher._fetch('sub', 'query', 250).then(
             function(data) {
                 try {
                     expect(reddit).to.have.been.calledWithExactly('/r/$subreddit/search');
@@ -174,10 +174,10 @@ describe('PostFetcher', function () {
     });
 
     it('fetches unflaired posts', function(done) {
-        fetcher.fetch = sinon.stub();
+        fetcher._fetch = sinon.stub();
         var def = Q.defer();
         def.resolve();
-        fetcher.fetch.returns(def.promise);
+        fetcher._fetch.returns(def.promise);
 
         fetcher.fetchUnflaired(240).then(function() {
             try {
@@ -187,7 +187,7 @@ describe('PostFetcher', function () {
                     return prev + '-flair:' + current + ' ';
                 }, '');
 
-                expect(fetcher.fetch).to.have.been.calledWithExactly('sub', query, 240);
+                expect(fetcher._fetch).to.have.been.calledWithExactly('sub', query, 240);
 
                 done();
             } catch(e) {
@@ -197,14 +197,14 @@ describe('PostFetcher', function () {
     });
 
     it('fetches upcoming matches', function(done) {
-        fetcher.fetch = sinon.stub();
+        fetcher._fetch = sinon.stub();
         var def = Q.defer();
         def.resolve();
-        fetcher.fetch.returns(def.promise);
+        fetcher._fetch.returns(def.promise);
 
         fetcher.fetchUpcoming(240).then(function() {
             try {
-                expect(fetcher.fetch).to.have.been.calledWithExactly('sub', 'flair:upcoming', 240);
+                expect(fetcher._fetch).to.have.been.calledWithExactly('sub', 'flair:upcoming', 240);
 
                 done();
             } catch(e) {
