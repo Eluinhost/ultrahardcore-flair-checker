@@ -7,7 +7,6 @@ var Q = require('q');
 
 var PostFetcher = require('./../src/PostFetcher');
 var Snoocore = require('snoocore');
-var config = require('./../config/config.json');
 
 describe('PostFetcher', function () {
 
@@ -93,7 +92,7 @@ describe('PostFetcher', function () {
                         sort: 'new',
                         count: 100  // 100 is max for reddit so we do it in chunks
                     });
-                    expect(fullSlice.next).to.have.been.called.once; // only query the first slice after the listing
+                    expect(fullSlice.next).to.have.been.calledOnce; // only query the first slice after the listing
                     expect(shortSlice.next).to.have.not.been.called;
 
                     // check length of returned data is the same we requested
@@ -124,7 +123,7 @@ describe('PostFetcher', function () {
                         sort: 'new',
                         count: 100  // 100 is max for reddit so we do it in chunks
                     });
-                    expect(fullSlice.next).to.have.been.called.once;  // we query for the next page
+                    expect(fullSlice.next).to.have.been.calledOnce;  // we query for the next page
                     expect(shortSlice.next).to.have.not.been.called;  // there are no more pages after the short one so it shouldn't query for the next page
 
                     // ensure we got all of the data
@@ -157,7 +156,7 @@ describe('PostFetcher', function () {
                         sort: 'new',
                         count: 100  // 100 is max for reddit so we do it in chunks
                     });
-                    expect(fullSlice.next).to.have.been.called.once;  // we query for the next page
+                    expect(fullSlice.next).to.have.been.calledTwice;  // we query for the next page
                     expect(shortSlice.next).to.have.not.been.called;  // there are no more pages after the short one so it shouldn't query for the next page
 
                     // ensure we got all of the data
