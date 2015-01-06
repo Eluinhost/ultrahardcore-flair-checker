@@ -33,6 +33,15 @@ function deduplicate(posts) {
 }
 
 PostFetcher.prototype = {
+    /**
+     * Fetches up to the given amount of posts from reddit
+     *
+     * @param {String} subreddit - the subreddit to search
+     * @param {String} query - the search query to use (flairs e.t.c.)
+     * @param {number} count - the amount of posts to attempt to fetch
+     * @returns {Q.promise} a promise that resolves to a list of posts when completed
+     * @private
+     */
     _fetch: function(subreddit, query, count) {
         var def = Q.defer();
 
@@ -90,6 +99,8 @@ PostFetcher.prototype = {
     },
     /**
      * Fetches all posts without any of the specified flairs
+     *
+     * @param {number} count - the amount of posts to attempt to retreive
      */
     fetchUnflaired: function(count) {
         var query = this.flairs.ignore.reduce(function(prev, current) {
@@ -100,6 +111,8 @@ PostFetcher.prototype = {
     },
     /**
      * Fetches all matches with upcoming match flair
+     *
+     * @param {number} count - the amount of posts to attempt to retreive
      */
     fetchUpcoming: function(count) {
         var query = 'flair:' + this.flairs.upcoming;
