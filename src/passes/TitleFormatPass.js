@@ -201,7 +201,6 @@ TitleFormatPass.prototype = {
 
         var self = this;
         this._removeProcessedPosts(posts).then(function(results) {
-
             async.each(
                 results,
                 function(result, callback) {
@@ -217,8 +216,6 @@ TitleFormatPass.prototype = {
                     }
                 }
             );
-
-            results.forEach(self._processPost, self);
         });
 
         return def.promise;
