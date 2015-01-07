@@ -2,6 +2,14 @@ var logger = require('./../Logger');
 var async = require('async');
 var Q = require('q');
 
+/**
+ * @param {Object} config
+ * @param {String} config.titleRegex - the regex to match titles, capture group 1 being the time
+ * @param {String} config.message - the message to leave on invalid titled posts
+ * @param {String} config.invalidClass - the class of the invalid match flair
+ * @param {String} config.invalidText - the text for the invalid match flair
+ * @constructor
+ */
 function TitleFormatPass(config) {
     this._TitleCheck = require('./../models/TitleCheck');
     this._titleRegex = new RegExp(config.titleRegex, 'i');
