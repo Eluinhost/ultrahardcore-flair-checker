@@ -1,6 +1,6 @@
 var Q = require('q');
 
-var models = [require('./../models/InvalidFormatCheck')];
+var models = [require('./../models/TitleCheck')];
 
 module.exports = function() {
     return models.map(function(element) {
