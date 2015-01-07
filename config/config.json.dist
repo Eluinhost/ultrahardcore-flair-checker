@@ -8,7 +8,7 @@
       "type": "script",
       "consumerKey": "PUT REDDIT APP KEY HERE",
       "consumerSecret": "PUT REDDIT APP SECRET HERE",
-      "scope": ["read", "modflair", "submit"]
+      "scope": ["read", "modflair", "submit", "modposts"]
     }
   },
   "database": {
