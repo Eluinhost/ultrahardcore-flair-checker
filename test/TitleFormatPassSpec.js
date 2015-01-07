@@ -25,7 +25,14 @@ describe('PostFetcher', function () {
         TitleCheck.find.withArgs('already-checked').returns(checkedDef.promise);
         TitleCheck.find.withArgs('not-checked').returns(unCheckedDef.promise);
 
-        pass = new TitleFormatPass(config.titleRegex);
+        pass = new TitleFormatPass({}, {
+            titleRegex: config.titleRegex,
+            timeMessage: '',
+            formatMessage: '',
+            upcomingFlairClass: '',
+            upcomingFlairText: '',
+            minTime: 2
+        });
         pass._TitleCheck = TitleCheck;
     });
 
