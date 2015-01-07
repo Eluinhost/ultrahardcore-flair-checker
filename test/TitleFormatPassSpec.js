@@ -3,6 +3,7 @@ var sinon = require('sinon');
 chai.use(require('sinon-chai'));
 var expect = chai.expect;
 var Q = require('q');
+var config = require('./../config/config.json');
 
 var TitleFormatPass = require('./../src/passes/TitleFormatPass');
 
@@ -24,8 +25,8 @@ describe('PostFetcher', function () {
         TitleCheck.find.withArgs('already-checked').returns(checkedDef.promise);
         TitleCheck.find.withArgs('not-checked').returns(unCheckedDef.promise);
 
-        pass = new TitleFormatPass();
-        pass.TitleCheck = TitleCheck;
+        pass = new TitleFormatPass(config.titleRegex);
+        pass._TitleCheck = TitleCheck;
     });
 
     it('checks for not checked status from model', function(done) {
@@ -54,7 +55,7 @@ describe('PostFetcher', function () {
 
     it('removes already processed posts from an array', function(done) {
         // half will be valid, half not
-        pass.TitleCheck.find = function(name) {
+        pass._TitleCheck.find = function(name) {
             return Q(name % 2 === 0 ? {} : null);
         };
 

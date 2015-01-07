@@ -1,14 +1,11 @@
 var logger = require('./../Logger');
 var async = require('async');
-var config = require('./../../config/config.json');
 var Q = require('q');
 
-function TitleFormatPass() {
-    this.TitleCheck = require('./../models/TitleCheck');
+function TitleFormatPass(config) {
+    this._TitleCheck = require('./../models/TitleCheck');
+    this._titleRegex = new RegExp(config.titleRegex, 'i');
 }
-
-var titleRegex = new RegExp(config.titleRegex, 'i');
-
 
 TitleFormatPass.prototype = {
     /**
@@ -54,7 +51,7 @@ TitleFormatPass.prototype = {
     _checkProcessed: function(name) {
         var def = Q.defer();
 
-        this.TitleCheck.find(name).then(
+        this._TitleCheck.find(name).then(
             function success(model) {
                 def.resolve(model !== null);
             },
@@ -73,7 +70,7 @@ TitleFormatPass.prototype = {
      * @private
      */
     _processPost: function(post) {
-        if (titleRegex.test(post.data.title)) {
+        if (this._titleRegex.test(post.data.title)) {
             logger.info('Post ID %s title (%s) is correct. Skipping', post.data.name, post.data.title);
             return Q();
         }
