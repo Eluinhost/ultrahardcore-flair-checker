@@ -127,8 +127,10 @@ TitleFormatPass.prototype = {
     /**
      * Sets the flair for the given link
      *
-     * @param {String} name
-     * @param flair
+     * @param {String} subreddit
+     * @param {String} name - the id of the link
+     * @param {String} flair - the flair css class
+     * @param {String} flairText
      * @returns {Q.promise}
      * @private
      */
@@ -140,8 +142,8 @@ TitleFormatPass.prototype = {
             link: name,
             text: flairText
         }).then(
-            function success(data) {
-                logger.info('Added upcoming match flair for post ID %s: %s', name, data);
+            function success() {
+                logger.info('Added upcoming match flair for post ID %s', name);
             },
             function error(err) {
                 logger.error('Failed to add upcoming match flair to post ID %s: %s', name, err);
@@ -171,10 +173,12 @@ TitleFormatPass.prototype = {
         if (null !== matches) {
             // title is a valid format, check if the date is in the past
             if (moment.utc(matches[1], 'MMM DD HH:mm', 'en').diff(moment.utc()) < 0) {
+                logger.info('Post ID %s title (%s) is in the past. Adding a comment to the post and removing it', post.data.name, post.data.title);
+
                 promises.push(this._leaveComment(this._timeResponse, post.data.name));
                 promises.push(this._removePost(post.data.name));
             } else {
-                logger.info('Post ID %s title (%s) is correct. Skipping', post.data.name, post.data.title);
+                logger.info('Post ID %s title (%s) is correct. Adding upcoming flair', post.data.name, post.data.title);
 
                 // add upcoming match flair
                 promises.push(this._setFlair(post.data.subreddit, post.data.name, this._upcomingFlairClass, this._upcomingFlairText));
@@ -182,7 +186,7 @@ TitleFormatPass.prototype = {
 
         } else {
             // invalid title, leave comment and remove post
-            logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post and adding invalid match flair', post.data.name, post.data.title);
+            logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post and removing it', post.data.name, post.data.title);
 
             promises.push(this._leaveComment(this._formatResponse, post.data.name));
             promises.push(this._removePost(post.data.name));
