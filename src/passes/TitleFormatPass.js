@@ -5,6 +5,9 @@ var Q = require('q');
 function TitleFormatPass(config) {
     this._TitleCheck = require('./../models/TitleCheck');
     this._titleRegex = new RegExp(config.titleRegex, 'i');
+    this._response = config.message;
+    this._invalidFlairClass = config.invalidClass;
+    this._invalidFlairText = config.invalidText;
 }
 
 TitleFormatPass.prototype = {
@@ -79,7 +82,7 @@ TitleFormatPass.prototype = {
 
         // add a comment on to the post
         var commentPromise = this.reddit('/api/comment').post({
-            text: config.titlePass.message,
+            text: this._response,
             thing_id: post.data.name
         }).then(
             function success() {
@@ -92,11 +95,11 @@ TitleFormatPass.prototype = {
 
         // add invalid match flair
         var flairPromise = this.reddit('/r/$subreddit/api/flair').post({
-            $subreddit: config.subreddit,
+            $subreddit: post.data.subreddit,
             api_type: 'json',
-            css_class: config.flairs.invalid.class,
+            css_class: this._invalidFlairClass,
             link: post.data.name,
-            text: config.flairs.invalid.text
+            text: this._invalidFlairText
         }).then(
             function success(data) {
                 logger.info('Added flair for post ID %s: %s', post.data.name, data);
@@ -137,7 +140,7 @@ TitleFormatPass.prototype = {
                 }
             );
 
-            results.forEach(self.processPost, self);
+            results.forEach(self._processPost, self);
         });
 
         return def.promise;
