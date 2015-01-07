@@ -1,14 +1,33 @@
 var logger = require('./../Logger');
 var async = require('async');
-var config = require('./../../config/config.json');
 var Q = require('q');
+var moment = require('moment');
 
-function TitleFormatPass() {
-    this.TitleCheck = require('./../models/TitleCheck');
+/**
+ * @param {Snoocore} reddit
+ * @param {Object} config
+ * @param {String} config.titleRegex - the regex to match titles, capture group 1 being the time
+ * @param {String} config.timeMessage - the message to leave on invalid titled posts
+ * @param {String} config.formatMessage - the message to leave on posts with past dates
+ * @param {String} config.upcomingFlairClass - the class for the upcoming match flair
+ * @param {String} config.upcomingFlairText - the text for the upcoming match flair
+ * @param {Number} config.minTime - the minimum amount of time after creation required before parsing happens in minutes
+ * @param {Object} config.retention
+ * @param {Number} config.retention.value - the amount of time to keep old id checks
+ * @param {String} config.retention.unit - the unit of time for the value to use
+ * @constructor
+ */
+function TitleFormatPass(reddit, config) {
+    this._reddit = reddit;
+    this._TitleCheck = require('./../models/TitleCheck');
+    this._titleRegex = new RegExp(config.titleRegex, 'i');
+    this._timeResponse = config.timeMessage;
+    this._formatResponse = config.formatMessage;
+    this._upcomingFlairClass = config.upcomingFlairClass;
+    this._upcomingFlairText = config.upcomingFlairText;
+    this._minTime = config.minTime;
+    this._retention = config.retention;
 }
-
-var titleRegex = new RegExp(config.titleRegex, 'i');
-
 
 TitleFormatPass.prototype = {
     /**
@@ -54,7 +73,7 @@ TitleFormatPass.prototype = {
     _checkProcessed: function(name) {
         var def = Q.defer();
 
-        this.TitleCheck.find(name).then(
+        this._TitleCheck.find(name).then(
             function success(model) {
                 def.resolve(model !== null);
             },
@@ -66,6 +85,76 @@ TitleFormatPass.prototype = {
         return def.promise;
     },
     /**
+     * Leaves a comment for the given ID
+     *
+     * @param {String} response - the message to send
+     * @param {String} name - the post ID to leave the comment on
+     * @returns {Q.promise}
+     * @private
+     */
+    _leaveComment: function(response, name) {
+        return this._reddit('/api/comment').post({
+            text: response,
+            thing_id: name
+        }).then(
+            function success() {
+                logger.info('Added comment to post ID %s', name);
+            },
+            function error(err) {
+                logger.error('Failed to add comment to post ID %s: %s', name, err);
+            }
+        );
+    },
+    /**
+     * Removes the post with the given ID, removes as not spam.
+     *
+     * @param {String} name - the id of the post to remove
+     * @returns {Q.promise}
+     * @private
+     */
+    _removePost: function(name) {
+        return this._reddit('/api/remove').post({
+            id: name,
+            spam: false
+        });
+    },
+    /**
+     * Saves the title as being checked
+     *
+     * @param name
+     * @returns {Q.promise}
+     * @private
+     */
+    _saveTitleCheck: function(name) {
+        return this._TitleCheck.build({ name: name, checked: moment().valueOf() }).save();
+    },
+    /**
+     * Sets the flair for the given link
+     *
+     * @param {String} subreddit
+     * @param {String} name - the id of the link
+     * @param {String} flair - the flair css class
+     * @param {String} flairText
+     * @returns {Q.promise}
+     * @private
+     */
+    _setFlair: function(subreddit, name, flair, flairText) {
+        return this._reddit('/r/$subreddit/api/flair').post({
+            $subreddit: subreddit,
+            api_type: 'json',
+            css_class: flair,
+            link: name,
+            text: flairText
+        }).then(
+            function success() {
+                logger.info('Added upcoming match flair for post ID %s', name);
+            },
+            function error(err) {
+                logger.error('Failed to add upcoming match flair to post ID %s: %s', name, err);
+            }
+        );
+    },
+    /**
      * Processes a post, does not check if already processed before
      *
      * @param post
@@ -73,44 +162,47 @@ TitleFormatPass.prototype = {
      * @private
      */
     _processPost: function(post) {
-        if (titleRegex.test(post.data.title)) {
-            logger.info('Post ID %s title (%s) is correct. Skipping', post.data.name, post.data.title);
+        logger.info('Starting processing of post ID %s (%s)', post.data.name, post.data.title);
+
+        // if the post is recently posted, skip it. This happens to avoid a newly created post without a flair
+        // (like announcements) being deleted before flair is added
+        var timeAgo = moment.utc().diff(moment.utc(post.data.created_utc, 'X'), 'minutes');
+        logger.info('Post was posted %d minutes ago', timeAgo);
+
+        if(timeAgo < this._minTime) {
+            logger.info('Post during grace period, skipping for now, %s', post.data.name);
             return Q();
         }
 
-        logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post and adding invalid match flair', post.data.name, post.data.title);
+        // save the fact we checked this post
+        var promises = [this._saveTitleCheck(post.data.name)];
 
-        // add a comment on to the post
-        var commentPromise = this.reddit('/api/comment').post({
-            text: config.titlePass.message,
-            thing_id: post.data.name
-        }).then(
-            function success() {
-                logger.info('Added comment to post ID %s', post.data.name);
-            },
-            function error(err) {
-                logger.error('Failed to add comment to post ID %s: %s', post.data.name, err);
+        var matches = this._titleRegex.exec(post.data.title);
+
+        // check the title is in a valid format
+        if (null !== matches) {
+            // title is a valid format, check if the date is in the past
+            if (moment.utc(matches[1], 'MMM DD HH:mm', 'en').diff(moment.utc()) < 0) {
+                logger.info('Post ID %s title (%s) is in the past. Adding a comment to the post and removing it', post.data.name, post.data.title);
+
+                promises.push(this._leaveComment(this._timeResponse, post.data.name));
+                promises.push(this._removePost(post.data.name));
+            } else {
+                logger.info('Post ID %s title (%s) is correct. Adding upcoming flair', post.data.name, post.data.title);
+
+                // add upcoming match flair
+                promises.push(this._setFlair(post.data.subreddit, post.data.name, this._upcomingFlairClass, this._upcomingFlairText));
             }
-        );
 
-        // add invalid match flair
-        var flairPromise = this.reddit('/r/$subreddit/api/flair').post({
-            $subreddit: config.subreddit,
-            api_type: 'json',
-            css_class: config.flairs.invalid.class,
-            link: post.data.name,
-            text: config.flairs.invalid.text
-        }).then(
-            function success(data) {
-                logger.info('Added flair for post ID %s: %s', post.data.name, data);
-            },
-            function error(err) {
-                logger.error('Failed to add invalid match flair to post ID %s: %s', post.data.name, err);
-            }
-        );
+        } else {
+            // invalid title, leave comment and remove post
+            logger.info('Post ID %s has an invalid title: %s. Adding a comment to the post and removing it', post.data.name, post.data.title);
 
-        // promise that resolves after flair/comment is done
-        return Q.allSettled(commentPromise, flairPromise);
+            promises.push(this._leaveComment(this._formatResponse, post.data.name));
+            promises.push(this._removePost(post.data.name));
+        }
+
+        return Q.allSettled(promises);
     },
     /**
      * Processes all of the given posts, skips already processed posts
@@ -123,6 +215,7 @@ TitleFormatPass.prototype = {
 
         var self = this;
         this._removeProcessedPosts(posts).then(function(results) {
+            logger.info('Processing %d filterd posts', results.length);
 
             async.each(
                 results,
@@ -139,11 +232,25 @@ TitleFormatPass.prototype = {
                     }
                 }
             );
-
-            results.forEach(self.processPost, self);
         });
 
         return def.promise;
+    },
+    /**
+     * Removes all checks in the database older than the configured retention
+     *
+     * @returns {Q.promise}
+     */
+    removeOldChecks: function() {
+        logger.info('Removing out of date title checks from the database');
+
+        return Q(this._TitleCheck.destroy({
+            where: {
+                checked: {
+                    lt: moment().subtract(this._retention.value, this._retention.unit).valueOf()
+                }
+            }
+        }));
     }
 };
 

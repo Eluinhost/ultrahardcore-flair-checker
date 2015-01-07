@@ -21,19 +21,26 @@
     }
   },
   "flairs": {
-    "excluded": ["Completed_Match", "Announcement", "Invalid_Match"],
-    "invalid": {
-      "class": "Invalid Match",
-      "text": "Invalid Match"
-    }
+    "upcoming": {
+      "class": "Upcoming_Match",
+      "text": "Upcoming Match"
+    },
+    "completed": {
+      "class": "Completed_Match",
+      "text": "Completed Match"
+    },
+    "ignores": ["Announcement"]
   },
-  "subreddit": "ghowden",
+  "fetchCount": 200,
+  "subreddit": "uhcmatches",
   "titleRegex": "^(\\w+ \\d+ \\d+:\\d+)\\s*(?:UTC|UCT)?\\s*\\[?(\\w*)\\]?[ -]+(.*)$",
   "titlePass": {
     "retention": {
       "unit": "months",
       "value": 6
     },
-    "message": "The title of this post does not conform to the subreddit rules for match post titles and may have problems showing up on match calendars. Please consider deleting the post and resubmitting with a valid title.\n\n---\n\n^This ^was ^posted ^by ^a ^bot. ^| ^Any ^problems? ^Contact [^ghowden](/u/ghowden) ^| [^Match ^Calendar](http://c.uhc.gg)"
+    "graceTime": 2,
+    "formatMessage": "The title of this post does not conform to the subreddit rules for match post titles and may have problems showing up on match calendars. Please consider resubmitting with a valid title.\n\n---\n\n^This ^was ^posted ^by ^a ^bot. ^| ^Any ^problems? ^Contact [^ghowden](/u/ghowden) ^| [^Match ^Calendar](http://c.uhc.gg)",
+    "timeMessage": "The title of this post has a time in the past. Please consider resubmitting with a valid time.\n\n---\n\n^This ^was ^posted ^by ^a ^bot. ^| ^Any ^problems? ^Contact [^ghowden](/u/ghowden) ^| [^Match ^Calendar](http://c.uhc.gg)"
   }
 }
