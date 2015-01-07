@@ -22,8 +22,11 @@ describe('PostFetcher', function () {
         reddit.returns(redditObj);
 
         TitleCheck = {
-            find: sinon.stub()
+            find: sinon.stub(),
+            destroy: sinon.stub()
         };
+
+        TitleCheck.destroy.returns(Q());
 
         checkedDef = Q.defer();
         unCheckedDef = Q.defer();
@@ -40,7 +43,11 @@ describe('PostFetcher', function () {
             formatMessage: 'invalid title format',
             upcomingFlairClass: 'upcoming_match',
             upcomingFlairText: 'upcoming match',
-            minTime: 2
+            minTime: 2,
+            retention: {
+                unit: 'months',
+                value: 6
+            }
         });
         pass._TitleCheck = TitleCheck;
     });
@@ -243,6 +250,15 @@ describe('PostFetcher', function () {
             expect(TitleCheck.build.callCount).to.equal(0);
             expect(reddit.callCount).to.equal(0);
 
+            done();
+        }).fail(function(err) {
+            done(err);
+        });
+    });
+
+    it('can remove old posts', function(done) {
+        pass.removeOldChecks().then(function() {
+            expect(TitleCheck.destroy).to.have.been.calledOnce;
             done();
         }).fail(function(err) {
             done(err);

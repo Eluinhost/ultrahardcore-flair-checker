@@ -12,6 +12,9 @@ var moment = require('moment');
  * @param {String} config.upcomingFlairClass - the class for the upcoming match flair
  * @param {String} config.upcomingFlairText - the text for the upcoming match flair
  * @param {Number} config.minTime - the minimum amount of time after creation required before parsing happens in minutes
+ * @param {Object} config.retention
+ * @param {Number} config.retention.value - the amount of time to keep old id checks
+ * @param {String} config.retention.unit - the unit of time for the value to use
  * @constructor
  */
 function TitleFormatPass(reddit, config) {
@@ -23,6 +26,7 @@ function TitleFormatPass(reddit, config) {
     this._upcomingFlairClass = config.upcomingFlairClass;
     this._upcomingFlairText = config.upcomingFlairText;
     this._minTime = config.minTime;
+    this._retention = config.retention;
 }
 
 TitleFormatPass.prototype = {
@@ -223,6 +227,17 @@ TitleFormatPass.prototype = {
         });
 
         return def.promise;
+    },
+    removeOldChecks: function() {
+        logger.info('Removing out of date title checks from the database');
+
+        return this._TitleCheck.destroy({
+            where: {
+                checked: {
+                    lt: moment().subtract(this._retention.value, this._retention.unit).valueOf()
+                }
+            }
+        });
     }
 };
 
