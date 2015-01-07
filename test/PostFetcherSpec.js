@@ -44,7 +44,7 @@ describe('PostFetcher', function () {
             listing: listing
         });
 
-        fetcher = new PostFetcher(reddit, 'sub', 'upcoming', 'invalid', 'completed',['ig1', 'ig2']);
+        fetcher = new PostFetcher(reddit, 'sub', 'upcoming', 'completed',['ig1', 'ig2']);
     });
 
     // should only call the first page of the listing and only fetch the specified amount
@@ -159,7 +159,7 @@ describe('PostFetcher', function () {
         fetcher._fetch.returns(def.promise);
 
         fetcher.fetchUnflaired(240).then(function() {
-            var ignore = ['ig1', 'ig2', 'upcoming', 'invalid', 'completed'];
+            var ignore = ['ig1', 'ig2', 'upcoming', 'completed'];
 
             var query = ignore.reduce(function(prev, current) {
                 return prev + '-flair:' + current + ' ';

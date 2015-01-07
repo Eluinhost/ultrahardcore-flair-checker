@@ -5,20 +5,18 @@ var async = require('async');
  * @param reddit Snoocore instance already authenticated
  * @param {String} subreddit the subreddit to search from
  * @param {String} upcoming flair for upcoming matches
- * @param {String} invalid flair for invalid matches
  * @param {String} completed flair for completed matches
  * @param {String[]} ignore other flairs to ignore
  * @constructor
  */
-function PostFetcher(reddit, subreddit, upcoming, invalid, completed, ignore) {
+function PostFetcher(reddit, subreddit, upcoming, completed, ignore) {
     this.reddit = reddit;
     this.subreddit = subreddit;
 
     this.flairs = {
         upcoming: upcoming,
-        invalid: invalid,
         completed: completed,
-        ignore: ignore.concat(upcoming, invalid, completed)
+        ignore: ignore.concat(upcoming, completed)
     };
 }
 
