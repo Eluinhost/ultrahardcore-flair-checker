@@ -162,9 +162,12 @@ TitleFormatPass.prototype = {
      * @private
      */
     _processPost: function(post) {
+        logger.info('Starting processing of post ID %s (%s)', post.data.name, post.data.title);
+
         // if the post is recently posted, skip it. This happens to avoid a newly created post without a flair
         // (like announcements) being deleted before flair is added
         if(moment.utc(post.data.created_utc, 'X').diff(moment.utc(), 'minutes') < this._minTime) {
+            logger.info('Post during grace period, skipping for now, %s', post.data.name);
             return Q();
         }
 
@@ -209,6 +212,8 @@ TitleFormatPass.prototype = {
 
         var self = this;
         this._removeProcessedPosts(posts).then(function(results) {
+            logger.info('Processing %d filterd posts', results.length);
+
             async.each(
                 results,
                 function(result, callback) {
@@ -228,16 +233,21 @@ TitleFormatPass.prototype = {
 
         return def.promise;
     },
+    /**
+     * Removes all checks in the database older than the configured retention
+     *
+     * @returns {Q.promise}
+     */
     removeOldChecks: function() {
         logger.info('Removing out of date title checks from the database');
 
-        return this._TitleCheck.destroy({
+        return Q(this._TitleCheck.destroy({
             where: {
                 checked: {
                     lt: moment().subtract(this._retention.value, this._retention.unit).valueOf()
                 }
             }
-        });
+        }));
     }
 };
 
