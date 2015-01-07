@@ -166,7 +166,10 @@ TitleFormatPass.prototype = {
 
         // if the post is recently posted, skip it. This happens to avoid a newly created post without a flair
         // (like announcements) being deleted before flair is added
-        if(moment.utc(post.data.created_utc, 'X').diff(moment.utc(), 'minutes') < this._minTime) {
+        var timeAgo = moment.utc().diff(moment.utc(post.data.created_utc, 'X'), 'minutes');
+        logger.info('Post was posted %d minutes ago', timeAgo);
+
+        if(timeAgo < this._minTime) {
             logger.info('Post during grace period, skipping for now, %s', post.data.name);
             return Q();
         }
