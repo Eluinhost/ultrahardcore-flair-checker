@@ -22,11 +22,11 @@
   },
   "flairs": {
     "upcoming": {
-      "class": "Upcoming_Match",
+      "class": "UpcomingMatch",
       "text": "Upcoming Match"
     },
     "completed": {
-      "class": "Completed_Match",
+      "class": "CompletedMatch",
       "text": "Completed Match"
     },
     "ignores": ["Announcement"]
