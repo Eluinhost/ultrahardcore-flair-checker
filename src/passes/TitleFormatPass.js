@@ -191,7 +191,7 @@ TitleFormatPass.prototype = {
             }
 
             // title is a valid format, check if the date is in the past
-            if (scheduled.diff(moment.utc()) < 0) {
+            if (scheduled.diff(current) < 0) {
                 logger.info('Post ID %s title (%s) is in the past. Adding a comment to the post and removing it', post.data.name, post.data.title);
 
                 promises.push(this._leaveComment(this._timeResponse, post.data.name));
