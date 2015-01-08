@@ -3,13 +3,13 @@ var sinon = require('sinon');
 chai.use(require('sinon-chai'));
 var expect = chai.expect;
 var Q = require('q');
-var config = require('./../config/config.json');
+var config = require('./../../config/config.json');
 var moment = require('moment');
 var async = require('async');
 
-var TitleFormatPass = require('./../src/passes/TitleFormatPass');
+var TitleFormatPass = require('./../../src/passes/TitleFormatPass');
 
-describe('PostFetcher', function () {
+describe('TitleFormatPass', function () {
 
     var TitleCheck, pass, checkedDef, unCheckedDef, reddit, redditObj;
 
@@ -78,6 +78,7 @@ describe('PostFetcher', function () {
 
     it('adds upcoming flair to valid titled posts', function(done) {
         var future = moment.utc().add(7, 'days');
+        var past = moment.utc().subtract(7, 'days');
 
         var dateString = future.format('MMM DD HH:mm');
 
@@ -85,7 +86,7 @@ describe('PostFetcher', function () {
         var template = function(title) {
             this.data = {
                 name: 't3_' + counter++,
-                created_utc: future,
+                created_utc: past,
                 title: title,
                 subreddit: 'uhcmatches'
             };
@@ -143,13 +144,14 @@ describe('PostFetcher', function () {
 
     it('comments and removes an invalid titled post', function(done) {
         var future = moment.utc().add(7, 'days');
+        var past = moment.utc().subtract(7, 'days');
 
         var dateString = future.format('MMM Do HH:mm'); // Jan 1st 00:00
 
         var post = {
             data: {
                 name: 't3_1',
-                created_utc: future,
+                created_utc: past,
                 title: dateString + ' UTC [EU] - Game Title',
                 subreddit: 'uhcmatches'
             }
@@ -186,14 +188,14 @@ describe('PostFetcher', function () {
     });
 
     it('comments and removes an past-timed titled post', function(done) {
-        var future = moment.utc().add(7, 'days');
+        var past = moment.utc().subtract(7, 'days');
 
         var dateString = moment.utc().subtract(1, 'days').format('MMM DD HH:mm'); // in the past
 
         var post = {
             data: {
                 name: 't3_1',
-                created_utc: future,
+                created_utc: past,
                 title: dateString + ' UTC [EU] - Game Title',
                 subreddit: 'uhcmatches'
             }
