@@ -64,8 +64,17 @@ CompletedMatchPass.prototype = {
             return Q();
         }
 
+        var scheduled = moment.utc(matches[1], 'MMM DD HH:mm', 'en');
+        var current = moment.utc();
+
+        if (scheduled.diff(current, 'months') > 6) {
+            scheduled.subtract(1, 'years');
+        } else if (scheduled.diff(current, 'months') < -6) {
+            scheduled.add(1, 'years');
+        }
+
         // title is a valid format, check if the date is in the past
-        if (moment.utc(matches[1], 'MMM DD HH:mm', 'en').diff(moment.utc()) > 0) {
+        if (scheduled.diff(current) > 0) {
             return Q(); // game title still in the future
         }
 
