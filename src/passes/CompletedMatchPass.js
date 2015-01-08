@@ -9,13 +9,14 @@ var moment = require('moment');
  * @param {Snoocore} reddit - the snoocore instance to use
  * @param {String} completedClass - the css class of the flair to use
  * @param {String} completedText - the text of the flair to use
+ * @param {String} titleRegex
  * @constructor
  */
 function CompletedMatchPass(reddit, completedClass, completedText, titleRegex) {
     this._reddit = reddit;
     this._completedClass = completedClass;
     this._completedText = completedText;
-    this._titleRegex = titleRegex;
+    this._titleRegex = new RegExp(titleRegex, 'i');
 }
 
 CompletedMatchPass.prototype = {

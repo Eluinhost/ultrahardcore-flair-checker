@@ -20,7 +20,7 @@ describe('CompletedMatchPass', function () {
         redditObj.post.returns(Q());
         reddit.returns(redditObj);
 
-        pass = new CompletedMatchPass(reddit, 'completed_match', 'Completed Match', new RegExp(config.titleRegex, 'i'));
+        pass = new CompletedMatchPass(reddit, 'completed_match', 'Completed Match', config.titleRegex);
     });
 
      it('adds completed flair to past posts', function(done) {

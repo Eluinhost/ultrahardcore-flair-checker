@@ -2,6 +2,7 @@ var config = require('./../config/config.json');
 var TitleCheck = require('./models/TitleCheck');
 var moment = require('moment');
 var TitleFormatPass = require('./passes/TitleFormatPass');
+var CompletedMatchPass = require('./passes/CompletedMatchPass');
 var PostFetcher = require('./PostFetcher');
 var Snoocore = require('snoocore');
 var logger = require('./Logger');
@@ -24,6 +25,13 @@ var titleFormatPass = new TitleFormatPass(reddit, {
     minTime: config.titlePass.graceTime,
     retention: config.titlePass.retention
 });
+
+var completedMatchPass = new CompletedMatchPass(
+    reddit,
+    config.flairs.completed.class,
+    config.flairs.completed.text,
+    config.titleRegex
+);
 
 // create a fetcher for getting latest posts
 var postFetcher = new PostFetcher(
@@ -50,14 +58,12 @@ require('./db/DbInit')()
     .then(function(posts) {
         return titleFormatPass.processPosts(posts);
     })
-    // TODO
-    //
-    //.then(function() {
-    //    return postFetcher.fetchUpcoming(config.fetchCount);
-    //})
-    //.then(function(posts) {
-    //    return upcomingPass.processPosts(posts);
-    //})
+    .then(function() {
+        return postFetcher.fetchUpcoming(config.fetchCount);
+    })
+    .then(function(posts) {
+        return completedMatchPass.processPosts(posts);
+    })
     .fail(function(err) {
         logger.error('Error occurred: %s', err);
     });
