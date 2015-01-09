@@ -2,7 +2,17 @@
 module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-release');
+    grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.initConfig({
+        copy: {
+            config: {
+                src: 'config/config.json.dist',
+                dest: 'config/config.json',
+                filter: function() {
+                    return !(grunt.file.exists(grunt.config('copy.config.dest')));
+                }
+            }
+        },
         mochaTest: {
             test: {
                 options: {
@@ -29,7 +39,7 @@ module.exports = function(grunt) {
 
     // Load grunt tasks automatically
     require('load-grunt-tasks')(grunt);
-    grunt.registerTask('test', ['mochaTest']);
+    grunt.registerTask('test', ['copy', 'mochaTest']);
     grunt.registerTask('test:watch', ['watch']);
     grunt.registerTask('default', ['test']);
 };
